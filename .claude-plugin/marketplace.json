@@ -1,0 +1,16 @@
+{
+  "name": "lubby",
+  "owner": {
+    "name": "Ali Sameni"
+  },
+  "description": "Lubby — meet developers while your AI coding agent works.",
+  "plugins": [
+    {
+      "name": "lubby",
+      "source": "./plugin",
+      "description": "Shares safe presence events with your Lubby server while Claude works. Never code, files, or prompts.",
+      "category": "community",
+      "tags": ["presence", "chat"]
+    }
+  ]
+}
