@@ -1,4 +1,4 @@
-# Lubby — Claude Code plugin
+# Lubby for Claude Code
 
 Shares **safe presence events** with your Lubby server while Claude works, so you can meet other developers who are also waiting on their agents.
 
@@ -6,7 +6,7 @@ Shares **safe presence events** with your Lubby server while Claude works, so yo
 
 This plugin transmits exactly: agent name (`claude_code`), lifecycle event, status, a derived stack label (e.g. "Laravel", detected from marker files like `artisan`), share level, and the plugin version.
 
-It never reads the conversation transcript, and never transmits code, file names, paths, prompts, terminal output, or repository names. See `scripts/lubby-event.mjs` — the contract is enforced in code, and the script always exits 0 so it can never disturb your session.
+It never reads the conversation transcript, and never transmits code, file names, paths, prompts, terminal output, or repository names. See `scripts/lubby-event.mjs`: the contract is enforced in code, and the script always exits 0 so it can never disturb your session.
 
 ## Install
 
@@ -20,9 +20,9 @@ Create the token on your Lubby dashboard.
 
 ## Commands
 
-- `/lubby:login [api-url] [token]` — connect to a Lubby server
-- `/lubby:status` — show connection, share level, paused state
-- `/lubby:pause [on|off]` — go invisible / reappear
+- `/lubby:login [api-url] [token]` - connect to a Lubby server
+- `/lubby:status` - show connection, share level, paused state
+- `/lubby:pause [on|off]` - go invisible / reappear
 
 ## How presence works
 
@@ -34,4 +34,4 @@ Create the token on your Lubby dashboard.
 | `Stop` | `completed` (you're available again) |
 | `SessionEnd` | `cancelled` |
 
-All hooks run async with a 10s timeout and fail silent — Lubby being down never slows Claude.
+All hooks run async with a 10s timeout and fail silent, so Lubby being down never slows Claude.

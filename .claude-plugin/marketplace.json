@@ -3,7 +3,7 @@
   "owner": {
     "name": "Ali Sameni"
   },
-  "description": "Lubby — meet developers while your AI coding agent works.",
+  "description": "Meet developers while your AI coding agent works.",
   "plugins": [
     {
       "name": "lubby",

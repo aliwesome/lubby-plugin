@@ -42,7 +42,7 @@ function readStdin() {
     });
 }
 
-// Marker-file detection only — file names never leave the machine.
+// Marker-file detection only; file names never leave the machine.
 function detectStack(cwd) {
     if (!cwd) return null;
     try {
@@ -52,7 +52,7 @@ function detectStack(cwd) {
         if (existsSync(join(cwd, 'go.mod'))) return 'Go';
         if (existsSync(join(cwd, 'Gemfile'))) return 'Ruby';
     } catch {
-        // unreadable cwd — fine, stack stays unknown
+        // unreadable cwd, stack stays unknown
     }
     return null;
 }
@@ -67,7 +67,7 @@ let config;
 try {
     config = JSON.parse(readFileSync(configPath, 'utf8'));
 } catch {
-    process.exit(0); // not logged in — stay silent
+    process.exit(0); // not logged in, stay silent
 }
 
 if (!config.token || config.paused) {
@@ -80,7 +80,7 @@ if (event === 'heartbeat') {
             process.exit(0);
         }
     } catch {
-        // no throttle file yet — proceed
+        // no throttle file yet, proceed
     }
 }
 
@@ -89,7 +89,7 @@ let cwd = null;
 try {
     cwd = JSON.parse(payload).cwd ?? null;
 } catch {
-    // no/invalid payload — stack detection is skipped
+    // no or invalid payload, stack detection is skipped
 }
 
 try {
