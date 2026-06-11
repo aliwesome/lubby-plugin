@@ -11,7 +11,7 @@ It never reads the conversation transcript, and never transmits code, file names
 ## Install
 
 ```bash
-/plugin marketplace add aliwesome/lubby       # or a local path while developing
+/plugin marketplace add aliwesome/lubby-plugin   # public distribution repo
 /plugin install lubby@lubby
 /lubby:login http://localhost:8000/api lub_yourtoken
 ```
