@@ -13,7 +13,7 @@ It never reads the conversation transcript, and never transmits code, file names
 ```bash
 /plugin marketplace add aliwesome/lubby-plugin   # public distribution repo
 /plugin install lubby@lubby
-/lubby:login http://localhost:8000/api lub_yourtoken
+/lubby:login https://lubby.tech/api lub_yourtoken
 ```
 
 Create the token on your Lubby dashboard.

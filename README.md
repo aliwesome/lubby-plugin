@@ -16,7 +16,7 @@ In Claude Code:
 Then connect to your Lubby server (ask your server admin for the URL, register there, and create a connector token on the dashboard):
 
 ```text
-/lubby:login http://your-lubby-server/api lub_yourtoken
+/lubby:login https://lubby.tech/api lub_yourtoken
 ```
 
 That's it. From your next Claude session onward, your presence follows your agent automatically.
