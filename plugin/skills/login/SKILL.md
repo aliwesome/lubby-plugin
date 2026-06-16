@@ -31,4 +31,20 @@ console.log("Lubby config written to " + p);
 echo '{}' | node "${CLAUDE_PLUGIN_ROOT}/scripts/lubby-event.mjs" heartbeat && echo "ok"
 ```
 
-(If `CLAUDE_PLUGIN_ROOT` is not set in your shell, locate the script under `~/.claude/plugins/`.) Tell the user they will now appear as "waiting" on the dashboard whenever Claude is working, and that only presence is shared, never code, file names, or prompts.
+(If `CLAUDE_PLUGIN_ROOT` is not set in your shell, locate the script under `~/.claude/plugins/`.)
+
+6. Install the persistent status line. A plugin cannot register a `statusLine`, so copy the script next to the config and add a `statusLine` block to `~/.claude/settings.json`. This is what keeps a Lubby line visible the whole session (the hooks only flash a one-time message). If the user already has a `statusLine` configured, show them the snippet below and ask before replacing it.
+
+```bash
+cp "${CLAUDE_PLUGIN_ROOT}/scripts/lubby-statusline.mjs" ~/.lubby/statusline.mjs
+node -e '
+const fs = require("fs"), p = process.env.HOME + "/.claude/settings.json";
+let s = {}; try { s = JSON.parse(fs.readFileSync(p, "utf8")); } catch {}
+s.statusLine = { type: "command", command: "node ~/.lubby/statusline.mjs", refreshInterval: 10 };
+fs.mkdirSync(require("path").dirname(p), { recursive: true });
+fs.writeFileSync(p, JSON.stringify(s, null, 2) + "\n");
+console.log("Lubby status line registered in " + p);
+'
+```
+
+Tell the user they will now appear as "waiting" on the dashboard whenever Claude is working, that a Lubby line stays in their status bar for the whole session, and that only presence is shared, never code, file names, or prompts.

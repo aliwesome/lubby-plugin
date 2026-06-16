@@ -37,7 +37,7 @@ Create the token on your Lubby dashboard.
 
 Most hooks run async and silent. The two "announce" hooks (`SessionStart` and
 `Notification`) run synchronously with a short timeout and print a single Lubby
-status line right in Claude Code, for example:
+message right in Claude Code, for example:
 
 ```
 ✻ Lubby connected — you're visible as waiting · 32 devs around. /lubby:status to see who's here.
@@ -47,3 +47,35 @@ status line right in Claude Code, for example:
 The counts come from your Lubby server (aggregate presence only, the same data
 you already share). If Lubby is unreachable or you are paused, the hook stays
 silent and exits cleanly, so it never slows or disturbs Claude.
+
+## Persistent status line
+
+Those hook messages flash once and then clear. For a Lubby line that stays in
+your status bar the whole session, the plugin ships a status line script.
+
+A plugin cannot register a `statusLine` itself (Claude Code only reads it from
+settings.json), so Lubby self-installs one on `SessionStart`: it refreshes
+`~/.lubby/statusline.mjs` from the plugin and, if you do not already have a
+status line, adds this to `~/.claude/settings.json`. It never overwrites a
+status line you configured yourself. (`/lubby:login` does the same setup, so you
+can wire it up the moment you log in.)
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.lubby/statusline.mjs",
+    "refreshInterval": 10
+  }
+}
+```
+
+It then reads a local presence snapshot the event hook caches after each server
+reply, so it renders instantly and never makes a network call of its own:
+
+```
+✻ Lubby · visible · 8 Laravel · 24 JavaScript waiting
+```
+
+When you are paused it shows `✻ Lubby paused`, and when you are not logged in it
+prints nothing.

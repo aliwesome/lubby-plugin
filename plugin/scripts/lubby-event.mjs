@@ -12,11 +12,11 @@
  *
  * This script must never break the agent: every failure path exits 0.
  */
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];
 // Only these events ever surface a status line to the user, no matter how the
 // hooks happen to pass the "announce" flag.
@@ -33,6 +33,9 @@ const HEARTBEAT_THROTTLE_MS = 30_000;
 
 const configPath = process.env.LUBBY_CONFIG ?? join(homedir(), '.lubby', 'config.json');
 const throttlePath = `${configPath}.heartbeat`;
+// The status line (scripts/lubby-statusline.mjs) reads this snapshot so it can
+// render instantly without ever hitting the network.
+const presencePath = join(dirname(configPath), 'presence.json');
 
 function readStdin() {
     return new Promise((resolve) => {
@@ -93,11 +96,54 @@ function buildMessage(name, waiting) {
     return `✻ Lubby — you're visible as waiting${who} → /lubby:status to join a 5-min room`;
 }
 
+// A plugin cannot ship a `statusLine` (Claude Code only reads it from
+// settings.json), so on SessionStart Lubby self-installs one: it refreshes the
+// script next to the config (so it tracks plugin updates) and registers it in
+// the user's settings.json. It only adds a status line when none exists, so it
+// never clobbers one you configured yourself. Entirely best-effort.
+function ensureStatusLine() {
+    try {
+        const root = process.env.CLAUDE_PLUGIN_ROOT;
+        if (!root) return;
+
+        const lubbyDir = dirname(configPath);
+        const dest = join(lubbyDir, 'statusline.mjs');
+        mkdirSync(lubbyDir, { recursive: true });
+        copyFileSync(join(root, 'scripts', 'lubby-statusline.mjs'), dest);
+
+        const settingsPath = join(homedir(), '.claude', 'settings.json');
+        let settings = {};
+        try {
+            settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
+        } catch {
+            // no settings yet, we will create one
+        }
+        if (settings.statusLine) return; // respect a status line you already set
+
+        settings.statusLine = {
+            type: 'command',
+            command: `node ${dest}`,
+            refreshInterval: 10,
+        };
+        mkdirSync(dirname(settingsPath), { recursive: true });
+        writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+    } catch {
+        // never break the session over status line setup
+    }
+}
+
 let config;
 try {
     config = JSON.parse(readFileSync(configPath, 'utf8'));
 } catch {
     process.exit(0); // not logged in, stay silent
+}
+
+// SessionStart is the natural moment to make sure the persistent status line is
+// wired up. `announce` is only set on SessionStart and Notification, and only
+// SessionStart carries the `started` event.
+if (config.token && announce && event === 'started') {
+    ensureStatusLine();
 }
 
 if (!config.token || config.paused) {
@@ -150,12 +196,32 @@ try {
         writeFileSync(throttlePath, '');
     }
 
-    // Surface a status line to the user for the synchronous announce hooks.
-    if (announce && response.ok) {
+    if (response.ok) {
         const body = await response.json();
-        process.stdout.write(
-            JSON.stringify({ systemMessage: buildMessage(event, body?.waiting) }),
-        );
+
+        // Cache the waiting snapshot so the persistent status line always has
+        // fresh counts to show, with no network call of its own. Best-effort:
+        // if this fails the status line just falls back to "visible as waiting".
+        try {
+            writeFileSync(
+                presencePath,
+                JSON.stringify({
+                    status: STATUS[event],
+                    waiting: body?.waiting ?? null,
+                    updated_at: new Date().toISOString(),
+                }) + '\n',
+                { mode: 0o600 },
+            );
+        } catch {
+            // ignore, presence cache is optional
+        }
+
+        // Surface a one-time line to the user for the synchronous announce hooks.
+        if (announce) {
+            process.stdout.write(
+                JSON.stringify({ systemMessage: buildMessage(event, body?.waiting) }),
+            );
+        }
     }
 } catch {
     // Network/server problems must never disturb the session.
