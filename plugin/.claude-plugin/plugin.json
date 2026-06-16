@@ -1,7 +1,7 @@
 {
   "name": "lubby",
   "displayName": "Lubby",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Meet developers while your AI coding agent works. Shares safe presence events (never code, files, or prompts) with your Lubby server.",
   "author": {
     "name": "Ali Sameni",

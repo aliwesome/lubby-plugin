@@ -17,17 +17,38 @@
  * event hook caches after each server reply. It NEVER hits the network, so it
  * is instant and can never slow the UI. Prints nothing when not logged in, so
  * it stays out of the way.
+ *
+ * What it shows:
+ *  - the live agent status from presence.json (running / waiting / done / ...),
+ *  - an animated spinner star while Claude is working (the frame is picked from
+ *    the clock, so it advances every time Claude Code re-renders the line),
+ *  - a clickable link (OSC 8) on the "Lubby" label that opens the web app.
  */
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 const ORANGE = '\x1b[38;2;255;107;53m';
+const GOLD = '\x1b[38;2;255;183;3m';
 const DIM = '\x1b[2m';
 const RESET = '\x1b[0m';
 
-// Cached counts older than this are dropped: the line still shows "visible as
-// waiting", just without stale numbers.
+// Spinner frames cycled while Claude is working. The frame is chosen from the
+// clock so the star advances on every re-render, reading as a live animation.
+const STARS = ['✶', '✦', '✳', '✻', '✺'];
+
+// How the cached agent status maps to a short, human label on the line. The
+// statuses come straight from the event hook (see lubby-event.mjs STATUS map).
+const STATUS_LABEL = {
+    running: 'waiting on Claude',
+    waiting_input: 'Claude needs you',
+    completed: 'Claude finished',
+    failed: 'Claude failed',
+    cancelled: 'Claude stopped',
+};
+
+// Cached counts older than this are dropped: the line still shows the status,
+// just without stale "N devs waiting" numbers.
 const FRESH_MS = 6 * 60 * 1000;
 
 function read(path) {
@@ -38,6 +59,13 @@ function read(path) {
     }
 }
 
+// Wrap text in an OSC 8 hyperlink so terminals that support it make the label
+// clickable. Terminals that do not simply render the plain text.
+function link(text, url) {
+    if (!url) return text;
+    return `\x1b]8;;${url}\x1b\\${text}\x1b]8;;\x1b\\`;
+}
+
 const configPath = process.env.LUBBY_CONFIG ?? join(homedir(), '.lubby', 'config.json');
 const config = read(configPath);
 
@@ -46,11 +74,18 @@ if (!config?.token) {
     process.exit(0);
 }
 
-const star = `${ORANGE}✻${RESET}`;
-const label = `${ORANGE}Lubby${RESET}`;
+// The web app lives at the api_url without its trailing "/api"; clicking the
+// Lubby label opens it. Falls back to the production host.
+const webUrl =
+    (config.api_url || '')
+        .replace(/\/api\/?$/, '')
+        .replace(/\/$/, '') || 'https://lubby.tech';
+
+const star = (frame) => `${ORANGE}${frame}${RESET}`;
+const label = `${ORANGE}${link('Lubby', webUrl)}${RESET}`;
 
 if (config.paused) {
-    process.stdout.write(`${star} ${label} ${DIM}paused${RESET}`);
+    process.stdout.write(`${star('✻')} ${label} ${DIM}paused${RESET}`);
     process.exit(0);
 }
 
@@ -58,17 +93,29 @@ const snap = read(join(dirname(configPath), 'presence.json'));
 const fresh =
     snap?.updated_at && Date.now() - Date.parse(snap.updated_at) < FRESH_MS;
 
-let detail = 'visible as waiting';
+const status = fresh ? snap?.status : null;
+const working = status === 'running';
+
+// Animate only while Claude is working; otherwise hold a steady star. The frame
+// advances roughly four times a second, so each re-render lands on a new one.
+const frame = working ? STARS[Math.floor(Date.now() / 250) % STARS.length] : '✻';
+
+// Lead with the live status; fall back to the plain presence line when we have
+// no fresh snapshot to read a status from.
+let detail = STATUS_LABEL[status] ?? 'visible as waiting';
+
+// Append aggregate "who else is waiting" counts when they are fresh. These are
+// presence the user already shares; no code, paths, or names are included.
 if (fresh) {
     const stacks = Array.isArray(snap.waiting?.stacks) ? snap.waiting.stacks : [];
     const total = Number(snap.waiting?.total ?? 0);
     if (stacks.length) {
         const parts = stacks.map((s) => `${s.count} ${s.stack}`).join(' · ');
-        detail = `visible · ${parts} waiting`;
+        detail += ` · ${GOLD}${parts} waiting${RESET}${DIM}`;
     } else if (total > 0) {
-        detail = `visible · ${total} dev${total === 1 ? '' : 's'} waiting`;
+        detail += ` · ${GOLD}${total} dev${total === 1 ? '' : 's'} waiting${RESET}${DIM}`;
     }
 }
 
-process.stdout.write(`${star} ${label} ${DIM}· ${detail}${RESET}`);
+process.stdout.write(`${star(frame)} ${label} ${DIM}· ${detail}${RESET}`);
 process.exit(0);

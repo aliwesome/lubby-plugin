@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-06-16
+
+### Changed
+
+- The status line now reflects the live agent status instead of always reading
+  "visible as waiting". It maps the cached status to a short label (running ->
+  "waiting on Claude", waiting_input -> "Claude needs you", and finished /
+  failed / stopped for the terminal events), falling back to "visible as
+  waiting" when there is no fresh snapshot.
+- The star is now an animated spinner while Claude is working. The frame is
+  picked from the clock, so it advances each time Claude Code re-renders the
+  line; non-working states hold a steady star.
+- The "Lubby" label is now a clickable OSC 8 hyperlink to the web app, derived
+  from the configured `api_url` (its trailing `/api` stripped). Terminals
+  without OSC 8 support just render the plain word.
+
 ## [0.3.1] - 2026-06-16
 
 ### Fixed
