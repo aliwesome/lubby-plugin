@@ -28,6 +28,11 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
+// This script's version. Kept in step with the plugin version (plugin.json and
+// lubby-event.mjs). Compared against the latest version the server reports so
+// the line can flag when an update is available.
+const VERSION = '0.3.3';
+
 const ORANGE = '\x1b[38;2;255;107;53m';
 const GOLD = '\x1b[38;2;255;183;3m';
 const DIM = '\x1b[2m';
@@ -64,6 +69,20 @@ function read(path) {
 function link(text, url) {
     if (!url) return text;
     return `\x1b]8;;${url}\x1b\\${text}\x1b]8;;\x1b\\`;
+}
+
+// True when version `a` is strictly older than `b` (simple dotted-numeric
+// compare; non-numeric or missing parts are treated as 0).
+function isOlder(a, b) {
+    if (!a || !b) return false;
+    const pa = String(a).split('.');
+    const pb = String(b).split('.');
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const x = Number(pa[i]) || 0;
+        const y = Number(pb[i]) || 0;
+        if (x !== y) return x < y;
+    }
+    return false;
 }
 
 const configPath = process.env.LUBBY_CONFIG ?? join(homedir(), '.lubby', 'config.json');
@@ -115,6 +134,12 @@ if (fresh) {
     } else if (total > 0) {
         detail += ` · ${GOLD}${total} dev${total === 1 ? '' : 's'} waiting${RESET}${DIM}`;
     }
+}
+
+// Nudge to update when the server reports a newer plugin than this one. The
+// hint is dim so it stays out of the way; run /lubby:update to act on it.
+if (fresh && isOlder(VERSION, snap?.latest_version)) {
+    detail += ` · ${GOLD}update available${RESET}${DIM} (/lubby:update)`;
 }
 
 process.stdout.write(`${star(frame)} ${label} ${DIM}· ${detail}${RESET}`);

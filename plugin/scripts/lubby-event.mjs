@@ -16,7 +16,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileS
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-const VERSION = '0.3.2';
+const VERSION = '0.3.3';
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];
 // Only these events ever surface a status line to the user, no matter how the
 // hooks happen to pass the "announce" flag.
@@ -208,6 +208,9 @@ try {
                 JSON.stringify({
                     status: STATUS[event],
                     waiting: body?.waiting ?? null,
+                    // Latest published version the server knows about, so the
+                    // status line can flag when this plugin is out of date.
+                    latest_version: body?.latest_plugin_version ?? null,
                     updated_at: new Date().toISOString(),
                 }) + '\n',
                 { mode: 0o600 },

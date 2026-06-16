@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-06-16
+
+### Added
+
+- "Update available" hint on the status line. The `/api/agent-events` response
+  now carries the latest published plugin version; the event hook caches it and
+  the status line compares it against its own version, showing a dim
+  `· update available (/lubby:update)` when this build is behind.
+- `/lubby:update` skill. Reports the installed versus latest version and, with
+  the user's confirmation, runs `claude plugin update lubby`.
+- `/lubby:share-location` skill. Hands the user their Lubby map link so they can
+  enable location from the dashboard. The plugin still never reads, infers, or
+  transmits location: only an explicit, consented click on the map page (using
+  the browser's geolocation) ever stores coordinates.
+
 ## [0.3.2] - 2026-06-16
 
 ### Changed
