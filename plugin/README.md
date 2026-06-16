@@ -26,12 +26,24 @@ Create the token on your Lubby dashboard.
 
 ## How presence works
 
-| Claude Code hook | Lubby event |
-|---|---|
-| `SessionStart`, `UserPromptSubmit` | `started` (you appear as waiting) |
-| `PostToolUse` | `heartbeat` (throttled to one per 30s) |
-| `Notification` | `waiting_input` (Claude needs you) |
-| `Stop` | `completed` (you're available again) |
-| `SessionEnd` | `cancelled` |
+| Claude Code hook | Lubby event | Shows a line? |
+|---|---|---|
+| `SessionStart` | `started` (you appear as waiting) | yes, once |
+| `UserPromptSubmit` | `started` | no |
+| `PostToolUse` | `heartbeat` (throttled to one per 30s) | no |
+| `Notification` | `waiting_input` (Claude needs you) | yes |
+| `Stop` | `completed` (you're available again) | no |
+| `SessionEnd` | `cancelled` | no |
 
-All hooks run async with a 10s timeout and fail silent, so Lubby being down never slows Claude.
+Most hooks run async and silent. The two "announce" hooks (`SessionStart` and
+`Notification`) run synchronously with a short timeout and print a single Lubby
+status line right in Claude Code, for example:
+
+```
+✻ Lubby connected — you're visible as waiting · 32 devs around. /lubby:status to see who's here.
+✻ Lubby — you're visible as waiting · 8 Laravel · 24 JavaScript waiting now → /lubby:status to join a 5-min room
+```
+
+The counts come from your Lubby server (aggregate presence only, the same data
+you already share). If Lubby is unreachable or you are paused, the hook stays
+silent and exits cleanly, so it never slows or disturbs Claude.

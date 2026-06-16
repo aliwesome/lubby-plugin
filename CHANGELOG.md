@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A Lubby status line in the Claude Code session. The `SessionStart` and
+  `Notification` hooks now run synchronously and print a single line via the
+  hook's `systemMessage`, for example `✻ Lubby — you're visible as waiting · 8
+  Laravel · 24 JavaScript waiting now → /lubby:status to join a 5-min room`. The
+  counts come from the server's `/agent-events` response (aggregate presence
+  only). If Lubby is unreachable or you are paused, the hook stays silent and
+  exits cleanly, so it never slows Claude.
+
 ### Changed
 
 - Docs and the `/lubby:login` skill now default to the production server at

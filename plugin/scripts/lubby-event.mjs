@@ -58,9 +58,36 @@ function detectStack(cwd) {
 }
 
 const event = process.argv[2];
+// When invoked with "announce" (SessionStart, Notification) the hook runs
+// synchronously and prints a short Lubby status line to the user via the
+// hook's systemMessage. All other events stay async and silent.
+const announce = process.argv.includes('announce');
 
 if (!EVENTS.includes(event)) {
     process.exit(0);
+}
+
+// A single, terminal-friendly status line. Counts are aggregate presence the
+// user already shares; no code, paths, or names are ever included.
+function buildMessage(name, waiting) {
+    const total = Number(waiting?.total ?? 0);
+    const stacks = Array.isArray(waiting?.stacks) ? waiting.stacks : [];
+    const stacksLine = stacks
+        .map((s) => `${s.count} ${s.stack}`)
+        .join(' · ');
+    const devs = (n) => `${n} dev${n === 1 ? '' : 's'}`;
+
+    if (name === 'started') {
+        const around = total > 0 ? ` · ${devs(total)} around` : '';
+        return `✻ Lubby connected — you're visible as waiting${around}. /lubby:status to see who's here.`;
+    }
+
+    // waiting_input: Claude paused, so this is the moment you're free to chat.
+    let who = '';
+    if (stacksLine) who = ` · ${stacksLine} waiting now`;
+    else if (total > 0) who = ` · ${devs(total)} waiting now`;
+
+    return `✻ Lubby — you're visible as waiting${who} → /lubby:status to join a 5-min room`;
 }
 
 let config;
@@ -94,9 +121,10 @@ try {
 
 try {
     const controller = new AbortController();
-    setTimeout(() => controller.abort(), 5000).unref();
+    // Keep the announce path snappy since those hooks run synchronously.
+    setTimeout(() => controller.abort(), announce ? 3500 : 5000).unref();
 
-    await fetch(`${config.api_url.replace(/\/$/, '')}/agent-events`, {
+    const response = await fetch(`${config.api_url.replace(/\/$/, '')}/agent-events`, {
         method: 'POST',
         signal: controller.signal,
         headers: {
@@ -117,6 +145,14 @@ try {
 
     if (event === 'heartbeat') {
         writeFileSync(throttlePath, '');
+    }
+
+    // Surface a status line to the user for the synchronous announce hooks.
+    if (announce && response.ok) {
+        const body = await response.json();
+        process.stdout.write(
+            JSON.stringify({ systemMessage: buildMessage(event, body?.waiting) }),
+        );
     }
 } catch {
     // Network/server problems must never disturb the session.

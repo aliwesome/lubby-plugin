@@ -5,9 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/lubby-event.mjs\" started",
-            "async": true,
-            "timeout": 10
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/lubby-event.mjs\" started announce",
+            "timeout": 8
           }
         ]
       }
@@ -41,9 +40,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/lubby-event.mjs\" waiting_input",
-            "async": true,
-            "timeout": 10
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/lubby-event.mjs\" waiting_input announce",
+            "timeout": 8
           }
         ]
       }
