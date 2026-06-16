@@ -16,8 +16,11 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];
+// Only these events ever surface a status line to the user, no matter how the
+// hooks happen to pass the "announce" flag.
+const ANNOUNCE_EVENTS = new Set(['started', 'waiting_input']);
 const STATUS = {
     started: 'running',
     heartbeat: 'running',
@@ -61,7 +64,7 @@ const event = process.argv[2];
 // When invoked with "announce" (SessionStart, Notification) the hook runs
 // synchronously and prints a short Lubby status line to the user via the
 // hook's systemMessage. All other events stay async and silent.
-const announce = process.argv.includes('announce');
+const announce = process.argv.includes('announce') && ANNOUNCE_EVENTS.has(event);
 
 if (!EVENTS.includes(event)) {
     process.exit(0);
