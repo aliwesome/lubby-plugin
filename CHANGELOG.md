@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-06-16
+
+### Fixed
+
+- Hooks failed to load on Claude Code 2.1.x with "Duplicate hooks file
+  detected". Recent Claude Code versions load the standard `hooks/hooks.json`
+  automatically, so the `hooks` key in `plugin.json` double-loaded it. Removed
+  the redundant manifest reference; the standard hooks file still loads on its
+  own.
+
 ## [0.3.0] - 2026-06-16
 
 ### Added
@@ -61,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/lubby:pause` skill to pause and resume presence sharing.
 - `/lubby:status` skill to inspect the current connection and sharing state.
 
-[unreleased]: https://github.com/aliwesome/lubby-plugin/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/aliwesome/lubby-plugin/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/aliwesome/lubby-plugin/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/aliwesome/lubby-plugin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/aliwesome/lubby-plugin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/aliwesome/lubby-plugin/releases/tag/v0.1.0

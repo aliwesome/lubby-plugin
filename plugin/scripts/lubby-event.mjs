@@ -16,7 +16,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileS
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-const VERSION = '0.3.0';
+const VERSION = '0.3.1';
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];
 // Only these events ever surface a status line to the user, no matter how the
 // hooks happen to pass the "announce" flag.
