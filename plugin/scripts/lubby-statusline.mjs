@@ -28,11 +28,6 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-// This script's version. Kept in step with the plugin version (plugin.json and
-// lubby-event.mjs). Compared against the latest version the server reports so
-// the line can flag when an update is available.
-const VERSION = '0.3.3';
-
 const ORANGE = '\x1b[38;2;255;107;53m';
 const GOLD = '\x1b[38;2;255;183;3m';
 const DIM = '\x1b[2m';
@@ -138,7 +133,11 @@ if (fresh) {
 
 // Nudge to update when the server reports a newer plugin than this one. The
 // hint is dim so it stays out of the way; run /lubby:update to act on it.
-if (fresh && isOlder(VERSION, snap?.latest_version)) {
+// Compare the version the running plugin recorded in the snapshot (not a copy
+// kept in this script, which used to drift) against the latest the server
+// reported. Both come from the same presence write, so a current install never
+// looks out of date.
+if (fresh && isOlder(snap?.plugin_version, snap?.latest_version)) {
     detail += ` · ${GOLD}update available${RESET}${DIM} (/lubby:update)`;
 }
 

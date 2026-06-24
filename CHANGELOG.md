@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-06-24
+
+### Fixed
+
+- "Update available" no longer sticks after updating. The status line kept its
+  own copy of the version, which was left at `0.3.3` in the `0.3.4` release, so
+  it always read as behind the server's advertised version. The version now has
+  a single source: the event hook reads it from `plugin.json`, records it in the
+  presence snapshot, and the status line compares that recorded version against
+  the latest, so it can no longer drift.
+
 ## [0.3.3] - 2026-06-16
 
 ### Added

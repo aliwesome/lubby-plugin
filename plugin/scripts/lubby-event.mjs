@@ -16,7 +16,26 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileS
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-const VERSION = '0.3.4';
+// The running plugin version. Sourced from the manifest so it can never drift
+// out of step with plugin.json the way a second hardcoded copy would; falls back
+// to a baked-in default when CLAUDE_PLUGIN_ROOT is unset (e.g. odd invocations).
+const VERSION = readPluginVersion();
+
+function readPluginVersion() {
+    try {
+        const root = process.env.CLAUDE_PLUGIN_ROOT;
+        if (root) {
+            const manifest = JSON.parse(
+                readFileSync(join(root, '.claude-plugin', 'plugin.json'), 'utf8'),
+            );
+            if (manifest?.version) return String(manifest.version);
+        }
+    } catch {
+        // fall through to the baked-in default
+    }
+    return '0.3.5';
+}
+
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];
 // Only these events ever surface a status line to the user, no matter how the
 // hooks happen to pass the "announce" flag.
@@ -237,6 +256,11 @@ try {
                 JSON.stringify({
                     status: STATUS[event],
                     waiting: body?.waiting ?? null,
+                    // The version actually running here, so the status line can
+                    // compare it against latest_version without keeping its own
+                    // copy of the version (which used to drift and pin the line
+                    // to a permanent "update available").
+                    plugin_version: VERSION,
                     // Latest published version the server knows about, so the
                     // status line can flag when this plugin is out of date.
                     latest_version: body?.latest_plugin_version ?? null,
