@@ -20,10 +20,12 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/lubby.mjs" version
 
 2. If the card shows an update is available (or you want to be sure despite a
    lagging "Latest"), ask the user before changing anything. Once they confirm,
-   update via the Claude Code CLI:
+   refresh the marketplace cache so the newest published version is visible, then
+   update. The plugin is installed as `lubby@lubby` (plugin@marketplace); the
+   bare name `lubby` can resolve to "not found", so always use the qualified one:
 
 ```bash
-claude plugin update lubby
+claude plugin marketplace update lubby && claude plugin update lubby@lubby
 ```
 
 3. Tell the user the update applies to a new Claude Code session: they should

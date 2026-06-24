@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-06-24
+
+### Fixed
+
+- `/lubby:update` no longer fails with `Plugin "lubby" not found`. The skill now
+  refreshes the marketplace cache and updates with the qualified `lubby@lubby`
+  name (plugin@marketplace), since the bare `lubby` does not resolve.
+
 ## [0.3.6] - 2026-06-24
 
 ### Added
