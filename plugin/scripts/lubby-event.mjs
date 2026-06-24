@@ -16,7 +16,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileS
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-const VERSION = '0.3.3';
+const VERSION = '0.3.4';
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];
 // Only these events ever surface a status line to the user, no matter how the
 // hooks happen to pass the "announce" flag.
@@ -94,6 +94,24 @@ function buildMessage(name, waiting) {
     else if (total > 0) who = ` · ${devs(total)} waiting now`;
 
     return `✻ Lubby — you're visible as waiting${who} → /lubby:status to join a 5-min room`;
+}
+
+// Previously-surfaced "say hi" ids, so each ping shows in the terminal once.
+function readShownHiIds() {
+    try {
+        const cached = JSON.parse(readFileSync(presencePath, 'utf8'));
+        return Array.isArray(cached?.shown_hi_ids) ? cached.shown_hi_ids : [];
+    } catch {
+        return []; // no cache yet
+    }
+}
+
+// "👋 Ali said hi, start chat: <url>" — a bare URL is clickable in most
+// terminals (Claude Code renders systemMessage as plain text, so no markup).
+function buildHellos(hellos) {
+    return hellos
+        .filter((h) => h && h.from && h.url)
+        .map((h) => `👋 ${h.from} said hi, start chat: ${h.url}`);
 }
 
 // A plugin cannot ship a `statusLine` (Claude Code only reads it from
@@ -199,6 +217,17 @@ try {
     if (response.ok) {
         const body = await response.json();
 
+        // "Say hi" pings from other people. Each one is shown in the terminal
+        // once (deduped by id via the presence cache); the web app owns read
+        // state, so surfacing a hi here never marks it read there.
+        const hellos = Array.isArray(body?.hellos) ? body.hellos : [];
+        const shownHiIds = readShownHiIds();
+        const newHellos = hellos.filter(
+            (h) => h && h.id != null && !shownHiIds.includes(h.id),
+        );
+        // Only the synchronous announce hooks print, so only those consume a hi.
+        const printedHiIds = announce ? newHellos.map((h) => h.id) : [];
+
         // Cache the waiting snapshot so the persistent status line always has
         // fresh counts to show, with no network call of its own. Best-effort:
         // if this fails the status line just falls back to "visible as waiting".
@@ -211,6 +240,8 @@ try {
                     // Latest published version the server knows about, so the
                     // status line can flag when this plugin is out of date.
                     latest_version: body?.latest_plugin_version ?? null,
+                    // Remember which his we surfaced so they never repeat.
+                    shown_hi_ids: [...shownHiIds, ...printedHiIds].slice(-50),
                     updated_at: new Date().toISOString(),
                 }) + '\n',
                 { mode: 0o600 },
@@ -219,10 +250,15 @@ try {
             // ignore, presence cache is optional
         }
 
-        // Surface a one-time line to the user for the synchronous announce hooks.
+        // Surface a one-time line to the user for the synchronous announce hooks,
+        // plus any new "say hi" pings with a clickable link to the room.
         if (announce) {
+            const lines = [
+                buildMessage(event, body?.waiting),
+                ...buildHellos(newHellos),
+            ];
             process.stdout.write(
-                JSON.stringify({ systemMessage: buildMessage(event, body?.waiting) }),
+                JSON.stringify({ systemMessage: lines.join('\n') }),
             );
         }
     }
