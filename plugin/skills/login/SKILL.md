@@ -47,4 +47,10 @@ console.log("Lubby status line registered in " + p);
 '
 ```
 
-Tell the user they will now appear as "waiting" on the dashboard whenever Claude is working, that a Lubby line stays in their status bar for the whole session, and that only presence is shared, never code, file names, or prompts.
+7. Finish on the status card so the whole flow ends clean (do NOT reprint or reformat it):
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/lubby.mjs" status
+```
+
+Then tell the user, in one or two short lines, that they will now appear as "waiting" on the dashboard whenever Claude is working, that a Lubby line stays in their status bar for the whole session, and that only presence is shared, never code, file names, or prompts.

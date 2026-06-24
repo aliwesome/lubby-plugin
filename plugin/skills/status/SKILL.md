@@ -5,16 +5,13 @@ allowed-tools: ["Bash"]
 
 # Lubby status
 
-Read `~/.lubby/config.json` and report to the user:
+Run the status renderer and let its output stand on its own:
 
 ```bash
-cat ~/.lubby/config.json 2>/dev/null || echo "not configured"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/lubby.mjs" status
 ```
 
-Report concisely:
-- **Server**: the `api_url` value
-- **Logged in**: yes if `token` is set (show only the first 8 characters, e.g. `lub_AB12...`), no otherwise
-- **Share level**: `share_level` (explain: `presence_only` means only "waiting + agent + stack" is shared, never code, files, or prompts)
-- **Paused**: the `paused` flag
-
-If not configured, suggest `/lubby:login`.
+The command prints the user-facing status card (server, login state, share
+level, sharing on/paused, version). Do NOT reprint, reformat, or summarise it,
+the card is the answer. Add at most one short follow-up line if something needs
+action (for example, suggest `/lubby:login` when it shows "Not connected").

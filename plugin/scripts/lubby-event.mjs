@@ -33,7 +33,7 @@ function readPluginVersion() {
     } catch {
         // fall through to the baked-in default
     }
-    return '0.3.5';
+    return '0.3.6';
 }
 
 const EVENTS = ['started', 'heartbeat', 'waiting_input', 'completed', 'failed', 'cancelled'];

@@ -7,24 +7,28 @@ allowed-tools: ["Bash"]
 
 Check whether a newer Lubby plugin is published and, with the user's go-ahead, install it.
 
-1. Read the cached presence snapshot to compare the installed version with the latest the server reported. The status line writes `latest_version` here after each agent event:
+1. Render the version card. It compares the installed manifest version against
+   the latest the server last reported (cached in the presence snapshot):
 
 ```bash
-node -e '
-const fs = require("fs"), p = process.env.HOME + "/.lubby/presence.json";
-let s = {}; try { s = JSON.parse(fs.readFileSync(p, "utf8")); } catch {}
-console.log("latest_known:", s.latest_version || "unknown");
-'
+node "${CLAUDE_PLUGIN_ROOT}/scripts/lubby.mjs" version
 ```
 
-The installed version is in the plugin manifest (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`, field `version`). If `latest_known` is unknown, the machine has not sent an event recently, so just go ahead and run the update; it is a no-op when already current.
+   The card is the user-facing output, do NOT reprint or reformat it. Note that
+   the "Latest" line can lag if this machine has not sent an event recently, so
+   even when it does not show an update, an update may still be published.
 
-2. If an update is available (or the version is unknown), tell the user the installed and latest versions and ask before changing anything. Once they confirm, update via the Claude Code CLI:
+2. If the card shows an update is available (or you want to be sure despite a
+   lagging "Latest"), ask the user before changing anything. Once they confirm,
+   update via the Claude Code CLI:
 
 ```bash
 claude plugin update lubby
 ```
 
-3. Tell the user the update applies to a new Claude Code session: they should restart Claude Code (or start a new session) for the new plugin to load. On the next `SessionStart`, Lubby refreshes the status line script automatically, so no manual steps are needed.
+3. Tell the user the update applies to a new Claude Code session: they should
+   restart Claude Code (or start a new session) for the new plugin to load. On
+   the next `SessionStart`, Lubby refreshes the status line script automatically,
+   so no manual steps are needed.
 
-Never invent version numbers; only report what the snapshot and manifest actually contain.
+Never invent version numbers; only report what the card actually shows.

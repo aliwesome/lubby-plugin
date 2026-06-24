@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] - 2026-06-24
+
+### Added
+
+- Consistent, branded TUI for the commands. A shared `lubby-tui.mjs` helper (the
+  status line's Campfire palette) and a `lubby.mjs` renderer print compact
+  `✶ Lubby · <title>` cards for `/lubby:status`, `/lubby:update`, and
+  `/lubby:share-location`, and the login flow ends on the same status card. The
+  skills now relay that output verbatim instead of the model improvising prose,
+  so every command looks the same every time. Honours `NO_COLOR`.
+
 ## [0.3.5] - 2026-06-24
 
 ### Fixed
