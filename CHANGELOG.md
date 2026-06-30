@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-30
+
+### Added
+
+- Browser-approval login. `/lubby:login` now runs the OAuth 2.0 Device
+  Authorization Grant (RFC 8628): it opens a Lubby approval page where you, already
+  signed in, confirm this machine, and a connector token is minted and saved for you
+  automatically, the same flow the Lubby Bar desktop app uses. No more creating and
+  pasting a token by hand. A new `scripts/lubby-login.mjs` helper drives the flow
+  (start, open browser, poll, write `~/.lubby/config.json`). Passing a `lub_` token or
+  running headless still works via the unchanged manual fallback.
+
 ## [0.3.7] - 2026-06-24
 
 ### Fixed

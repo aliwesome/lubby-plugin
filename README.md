@@ -13,11 +13,13 @@ In Claude Code:
 /plugin install lubby@lubby
 ```
 
-Then connect to your Lubby server (ask your server admin for the URL, register there, and create a connector token on the dashboard):
+Then connect, no token to create:
 
 ```text
-/lubby:login https://lubby.tech/api lub_yourtoken
+/lubby:login
 ```
+
+This opens a Lubby approval page in your browser where you (already signed in) confirm this machine, and a connector token is minted and stored for you automatically, the same browser-approval flow the [Lubby Bar desktop app](https://github.com/aliwesome/lubby-bar) uses. It defaults to `https://lubby.tech`; pass your own server's URL to point elsewhere. Prefer a manual token (for CI or a headless box)? Create one on your dashboard and pass it explicitly: `/lubby:login https://lubby.tech/api lub_yourtoken`.
 
 That's it. From your next Claude session onward, your presence follows your agent automatically.
 

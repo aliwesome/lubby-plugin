@@ -13,10 +13,14 @@ It never reads the conversation transcript, and never transmits code, file names
 ```bash
 /plugin marketplace add aliwesome/lubby-plugin   # public distribution repo
 /plugin install lubby@lubby
-/lubby:login https://lubby.tech/api lub_yourtoken
+/lubby:login                                     # approve in your browser, no token to create
 ```
 
-Create the token on your Lubby dashboard.
+`/lubby:login` opens a Lubby approval page where you (already signed in) confirm this
+machine, and a connector token is minted and stored for you, the same browser-approval
+flow the Lubby Bar desktop app uses. It defaults to `https://lubby.tech`; pass your own
+server URL to point elsewhere. Prefer a manual token (CI, headless)? Pass one explicitly:
+`/lubby:login https://lubby.tech/api lub_yourtoken`.
 
 ## Commands
 

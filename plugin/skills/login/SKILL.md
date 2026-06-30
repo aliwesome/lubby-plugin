@@ -1,17 +1,30 @@
 ---
-description: Connect this machine to a Lubby server with a connector token. Use when the user wants to log in to Lubby or set up Lubby presence sharing.
+description: Connect this machine to a Lubby server by approving in your browser, no token needed. Use when the user wants to log in to Lubby or set up Lubby presence sharing.
 argument-hint: "[api-url] [token]"
 allowed-tools: ["Bash", "AskUserQuestion"]
 ---
 
 # Lubby login
 
-Store the user's Lubby connector token in `~/.lubby/config.json`.
+Connect this machine to Lubby and store the resulting token in `~/.lubby/config.json`.
+
+The preferred path is **browser approval** (no hand-made token): the helper opens a Lubby page where the user, already signed in, approves this device and a token is minted automatically, exactly like the Lubby Bar desktop app.
 
 1. Parse `$ARGUMENTS`. It may contain an API URL (anything starting with `http`) and/or a token (starts with `lub_`).
-2. If the token is missing, ask the user to paste one; they can create it on their Lubby dashboard (`https://lubby.tech/dashboard`, or your own server). Never invent a token.
-3. If the API URL is missing, ask which server to use, suggesting `https://lubby.tech/api` (use `http://localhost:8000/api` for local development). Ensure the URL ends with `/api`.
-4. Write the config (mode 600, merging with any existing file):
+   - If it **already contains a `lub_` token**, the user supplied one explicitly, skip to step 4 (manual path).
+   - Otherwise resolve the API URL: use the one given, else `https://lubby.tech/api` (use `http://localhost:8000/api` for local development). You do not need to ask, the helper defaults to `https://lubby.tech/api` and normalizes a bare host.
+
+2. **Browser approval (default).** Run the device-login helper. It prints an approval URL and a code, opens the browser, and blocks until the user approves, then writes the config itself:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/lubby-login.mjs" "<API_URL_OR_BLANK>"
+```
+
+   Relay the printed approval URL and code to the user and tell them to approve in the browser. The command exits 0 once the token is saved. If it exits non-zero (e.g. no browser, offline, or the user prefers a token), fall through to the manual path below.
+
+3. On success, skip to step 5 (verify). Do not also run the manual write.
+
+4. **Manual fallback (only if step 2 failed or a `lub_` token was passed).** Ask the user to paste a token from their dashboard (`https://lubby.tech/dashboard`, or their own server); never invent one. Ensure the API URL ends with `/api`. Write the config (mode 600, merging with any existing file):
 
 ```bash
 mkdir -p ~/.lubby
